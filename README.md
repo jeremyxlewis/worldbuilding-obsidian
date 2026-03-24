@@ -1,6 +1,6 @@
 # Worldbuilding-Obsidian
 
-A skill for building worlds that feel lived-in, not designed. Generates complete Obsidian vaults for D&D homebrew and novelists with semantic search, faction clocks, deep continuity enforcement, and humanized in-world writing.
+A skill for building worlds that feel lived-in, not designed. Generates complete Obsidian vaults for D&D homebrew and novelists with semantic search, faction progress, deep continuity enforcement, and humanized in-world writing.
 
 ## Install
 
@@ -16,16 +16,17 @@ pip install -r requirements.txt
 
 ## What It Does
 
-**8 workflows:**
+**9 workflows:**
 
-1. **Create Vault** — Full Obsidian vault with 11 folders, 20+ templates, Dataview dashboards, plugin configs
+1. **Create Vault** — Full Obsidian vault with 11 folders, 25+ templates, Dataview dashboards, plugin configs
 2. **Create Entity** — Semantic search finds relevant context, then generates world-consistent entities with auto-linked wikilinks
-3. **Diagnose World** — 16 diagnostic checks for consistency (W1-W16)
-4. **Faction Clocks** — Blades in the Dark-style progression with auto-cascade on fill
-5. **Continuity Check** — Deep enforcement for novelists (eye color, ages, timeline, magic rules)
-6. **Cascade Analysis** — "What if the king dies?" traces all consequences through your vault
-7. **Humanize** — Always-on AI-tell removal (24 categories) + voice injection
-8. **Semantic Search** — RAG-powered search finds relevant entities even without explicit wikilinks
+3. **Bulk Create** — Generate 50+ NPCs from CSV/JSON at once
+4. **Diagnose World** — 20+ diagnostic checks for consistency (W1-W16)
+5. **Faction Progress** — Simple session-based tracking with optional programmatic advancement
+6. **Continuity Check** — Deep enforcement for novelists (eye color, ages, timeline, magic rules)
+7. **Cascade Analysis** — "What if the king dies?" traces all consequences through your vault
+8. **Humanize** — Always-on AI-tell removal (24 categories) + voice injection
+9. **Export/Import** — JSON/CSV export for external tools
 
 ## Modes
 
@@ -39,12 +40,16 @@ pip install -r requirements.txt
 
 - **Semantic search (RAG)** — find related entities by meaning, not just wikilinks. "necromancy rituals" finds your Cult of Orcus even if you never linked them
 - **World-aware generation** — reads your vault before creating new content
-- **20+ Obsidian templates** — characters, locations, factions, quests, magic items, creatures, and more
-- **Faction clock system** — track faction goals that advance independently of player action
+- **25+ Obsidian templates** — characters, locations, factions, armies, diseases, languages, treaties, quests, magic items, creatures, and more
+- **Faction progress tracking** — simple session notation: `Faction: ███░░ 3/6`
+- **Canon status** — track draft/beta/published content for novelists
 - **Deep continuity** — catches eye color changes, timeline errors, magic rule violations
 - **Dataview dashboards** — pre-built queries for characters, quests, factions, timeline
 - **Plugin configs** — Fantasy Statblocks, Dice Roller, Calendarium, Leaflet, Templater
 - **Humanized writing** — no "delve," no "tapestry," no "nestled in the heart of"
+- **Bulk operations** — create 50+ NPCs from CSV/JSON
+- **Regional scoping** — filter searches by region
+- **Export/Import** — JSON/CSV for external tools
 
 ## Semantic Search
 
@@ -66,11 +71,20 @@ python scripts/vault_search.py --vault /path --query "necromancy rituals"
 # Filter by entity type
 python scripts/vault_search.py --vault /path --query "thieves guild" --type faction
 
+# Filter by region
+python scripts/vault_search.py --vault /path --query "cities" --region Northern_Kingdoms
+
+# Pagination
+python scripts/vault_search.py --vault /path --query "locations" --offset 20 --n 10
+
 # Find what's related to an entity
 python scripts/vault_search.py --vault /path --related "Elara Vareth"
 
 # Check index stats
 python scripts/index_vault.py --vault /path --stats
+
+# Faster indexing with parallel workers
+python scripts/index_vault.py --vault /path --workers 4
 ```
 
 The index auto-syncs when files change — no manual re-indexing needed.
@@ -82,9 +96,14 @@ World Name/
 ├── 00_Dashboard/          # Dataview dashboards
 ├── 01_Characters/         # PCs and NPCs
 ├── 02_Locations/          # Continents to buildings
-├── 03_Organizations/      # Factions, guilds, governments
-├── 04_Cultures_and_Races/ # Races, societies, customs
-├── 05_Systems/            # Magic, technology, economy, religion
+├── 03_Organizations/      # Factions, guilds, governments, armies, treaties
+├── 04_Cultures_and_Races/ # Races, societies, customs, languages
+├── 05_Systems/
+│   ├── Magic/             # Magic systems, schools, rules
+│   ├── Technology/        # Tech levels, inventions
+│   ├── Economy/           # Currency, trade, trade routes
+│   ├── Religion/          # Deities, theology, temples
+│   └── Medicine/          # Diseases, plagues
 ├── 06_History_and_Timeline/ # Events, eras, calendars
 ├── 07_Quests_and_Adventures/ # Quests, hooks, encounters
 ├── 08_Items_and_Equipment/   # Magic items, artifacts, gear
@@ -104,14 +123,17 @@ World Name/
 "Create an NPC — a dwarven blacksmith named Thoren"
 → Searches vault for context, generates Thoren with proper frontmatter, wikilinks to related entities
 
+"Generate 30 NPCs for Frostholm City from NPCs.csv"
+→ Bulk creates 30 NPCs, links them all to Frostholm City
+
 "What would happen if the Merchant's Guild collapses?"
 → Traces 1st/2nd/3rd order consequences through your entire vault
 
 "Check my world for consistency issues"
-→ Runs 16 diagnostic checks, reports broken links, empty entities, AI writing patterns
+→ Runs 20+ diagnostic checks, reports broken links, empty entities, AI writing patterns, quest orphans, NPC motivation gaps
 
-"Advance the Cult of Orcus's faction clock by 1"
-→ Updates clock, cascades consequences if clock fills
+"Show faction status"
+→ Displays progress of all tracked factions using notation like ███░░ 3/6
 
 "Find everything related to necromancy"
 → Semantic search returns Cult of Orcus, undead encounters, death-related magic items
@@ -123,11 +145,15 @@ World Name/
 |--------|---------|
 | `init_vault.py` | Create full vault scaffold with plugin configs |
 | `create_entity.py` | Create entity from template with wikilinks |
-| `validate_world.py` | Scan vault for issues, run diagnostics |
+| `bulk_create.py` | Bulk create entities from CSV/JSON |
+| `advance_clocks.py` | Track faction progress (--status, --faction, --all) |
+| `rollback.py` | Snapshot and restore vault state |
+| `validate_world.py` | Scan vault for issues, run diagnostics (20+ checks) |
 | `generate_dashboard.py` | Generate Dataview-powered dashboards |
 | `cascade_analysis.py` | Trace "what if?" consequences through vault |
 | `index_vault.py` | Index vault for semantic search (RAG) |
 | `vault_search.py` | Semantic search across vault content |
+| `export_vault.py` | Export vault to JSON/CSV |
 
 ## Tech Stack
 
@@ -135,6 +161,7 @@ World Name/
 - **Vector store:** ChromaDB (local, persistent, zero-config)
 - **Chunking:** Markdown header-aware splitting (h1-h3)
 - **Sync:** Hash-based manifest, incremental re-index on search
+- **Parallel processing:** ThreadPoolExecutor for faster indexing
 
 ## License
 

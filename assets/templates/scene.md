@@ -2,6 +2,8 @@
 title: "{{name}}"
 type: scene
 status: draft
+canon_status: draft
+canon_books: []
 chapter: ""
 pov: ""
 word_count: 0

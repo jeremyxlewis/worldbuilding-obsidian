@@ -52,23 +52,11 @@ tags:
 
 *When were they founded? What crises have they survived? What are their internal contradictions?*
 
-## Faction Clock
+## Progress Tracking
 
-> [!info] Blades in the Dark Style Progression
-> Track faction goals as clocks that advance independently of player action.
+Track in session notes using: `Faction: ███░░ 3/6`
 
-```yaml
-clock_name: ""
-clock_size: 6
-clock_filled: 0
-clock_triggers:
-  - "Trigger 1"
-  - "Trigger 2"
-  - "Trigger 3"
-  - "Trigger 4"
-  - "Trigger 5"
-  - "Trigger 6 (clock fills)"
-```
+For programmatic tracking: `scripts/advance_clocks.py`
 
 ## Secrets
 

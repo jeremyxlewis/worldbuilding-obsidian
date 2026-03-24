@@ -17,12 +17,17 @@ ENTITY_FOLDERS = {
     "location": "02_Locations",
     "region": "02_Locations",
     "faction": "03_Organizations",
+    "army": "03_Organizations",
+    "treaty": "03_Organizations",
     "culture": "04_Cultures_and_Races",
     "race": "04_Cultures_and_Races",
+    "language": "04_Cultures_and_Races",
     "magic-system": "05_Systems/Magic",
     "religion": "05_Systems/Religion",
     "technology": "05_Systems/Technology",
     "economy": "05_Systems/Economy",
+    "trade-route": "05_Systems/Economy",
+    "disease": "05_Systems/Medicine",
     "historical-event": "06_History_and_Timeline",
     "quest": "07_Quests_and_Adventures",
     "encounter": "07_Quests_and_Adventures",
@@ -31,7 +36,6 @@ ENTITY_FOLDERS = {
     "session-note": "10_Campaign",
     "scene": "11_Manuscript",
     "chapter": "11_Manuscript",
-    "faction-clock": "03_Organizations",
 }
 
 

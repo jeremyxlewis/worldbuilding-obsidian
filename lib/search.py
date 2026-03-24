@@ -22,6 +22,8 @@ class VaultSearch:
         n_results: int = 5,
         entity_type: Optional[str] = None,
         folder: Optional[str] = None,
+        region: Optional[str] = None,
+        offset: int = 0,
         auto_update: bool = True,
     ) -> list[dict]:
         """Search the vault for relevant chunks.
@@ -31,6 +33,8 @@ class VaultSearch:
             n_results: Number of results to return
             entity_type: Filter by entity type (e.g., "npc", "faction")
             folder: Filter by folder name (e.g., "01_Characters")
+            region: Filter by region subfolder (searches recursively)
+            offset: Offset for pagination
             auto_update: Automatically re-index if files changed
 
         Returns:
@@ -51,16 +55,29 @@ class VaultSearch:
             where_filter["entity_type"] = entity_type
         if folder:
             where_filter["source"] = {"$contains": folder}
+        if region:
+            where_filter["source"] = {"$contains": f"/{region}/"}
 
         # Query
         query_embedding = embed_query(query)
 
         results = collection.query(
             query_embeddings=[query_embedding],
-            n_results=min(n_results, collection.count()),
+            n_results=min(n_results + offset, collection.count()),
             where=where_filter if where_filter else None,
             include=["documents", "metadatas", "distances"],
         )
+
+        # Apply offset for pagination
+        if (
+            offset > 0
+            and results
+            and results.get("documents")
+            and results["documents"][0]
+        ):
+            results["documents"][0] = results["documents"][0][offset:]
+            results["metadatas"][0] = results["metadatas"][0][offset:]
+            results["distances"][0] = results["distances"][0][offset:]
 
         # Format results
         formatted = []

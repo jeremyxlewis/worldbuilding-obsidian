@@ -31,7 +31,7 @@ Use when the user asks to:
 - Manage novel continuity, character arcs, or series bible
 - Run diagnostic checks on a world's consistency
 - Analyze "what if?" scenarios or trace consequences
-- Set up faction clocks or progression systems
+- Generate bulk entities (50+ NPCs for a city)
 
 Do NOT use when:
 - Writing prose fiction (scenes/chapters) without worldbuilding context
@@ -113,14 +113,19 @@ When: "Create an NPC," "add a location," "make a faction," "generate a quest"
 
 | Request | Folder | Template |
 |---------|--------|----------|
-| NPC / Character | `01_Characters/` | character.md |
+| NPC / Character | `01_Characters/` | character.md, npc.md |
 | Location (city, dungeon, etc.) | `02_Locations/` | location.md or region.md |
 | Faction / Guild / Government | `03_Organizations/` | faction.md |
 | Culture / Race | `04_Cultures_and_Races/` | culture.md or race.md |
+| Language | `04_Cultures_and_Races/` | language.md |
+| Army / Military | `03_Organizations/` | army.md |
 | Magic System | `05_Systems/Magic/` | magic-system.md |
 | Religion / Deity | `05_Systems/Religion/` | religion.md |
 | Technology | `05_Systems/Technology/` | technology.md |
 | Economy | `05_Systems/Economy/` | economy.md |
+| Trade Route | `05_Systems/Economy/` | trade-route.md |
+| Treaty / Alliance | `03_Organizations/` | treaty.md |
+| Disease / Plague | `05_Systems/` | disease.md |
 | Historical Event | `06_History_and_Timeline/` | historical-event.md |
 | Quest / Adventure | `07_Quests_and_Adventures/` | quest.md |
 | Encounter | `07_Quests_and_Adventures/` | encounter.md |
@@ -153,36 +158,23 @@ When: "Check my world for issues," "run diagnostics," "is my world consistent"
 
 4. **Suggest fixes** for each issue with specific file references.
 
-## Workflow D: Faction Clock Update
+## Workflow D: Faction Progress (Simplified)
 
-When: "Advance the faction clock," "what are the factions doing," "tick the clocks"
+When: "Track faction progress," "what are factions doing," "advance faction goals"
 
-1. **Read faction notes** in `03_Organizations/`.
-2. **Parse clock state** from frontmatter.
-3. **Advance clock** by requested amount (default: 1).
-4. **Check if clock filled:**
-   - If filled: trigger cascade (see Workflow F)
-   - Generate affected location updates, NPC reactions, new quest hooks
-5. **Update faction note** with new clock state.
-6. **Report** current state of all faction clocks.
+Track faction progress directly in session notes or faction files using simple notation:
 
-### Clock Frontmatter Format
-```yaml
----
-type: faction-clock
-faction: "[[Cult of Orcus]]"
-clock_name: "Raise the Necropolis"
-clock_size: 6
-clock_filled: 3
-clock_triggers:
-  - "Undead rise in the old cemetery"
-  - "Temple district reports strange lights"
-  - "Noble family found dead"
-  - "City guard discovers underground temple"
-  - "Mass resurrection in the slums"
-  - "Necropolis fully manifested"
----
 ```
+Faction Progress (Session Notes):
+- Cult of Orcus: ████░░ 4/6 (Raise the Necropolis)
+- Merchant's Guild: ██████ 6/6 COMPLETE
+```
+
+1. **Track in session notes** — Not frontmatter. Use: `Faction: ███░░ 3/6`
+2. **Use cascade analysis** for "what happens next" — see Workflow F
+3. **Don't over-engineer** — Manual tracking at the table is faster
+
+For programmatic tracking, use `scripts/advance_clocks.py --status`
 
 ## Workflow E: Continuity Check (Novelist)
 
@@ -259,13 +251,15 @@ World Name/
 ├── 00_Dashboard/          # Dataview dashboards, overview notes
 ├── 01_Characters/         # PCs, NPCs, one note per person
 ├── 02_Locations/          # Continents to buildings
-├── 03_Organizations/      # Factions, guilds, governments
-├── 04_Cultures_and_Races/ # Races, societies, customs
+│   └── 00_Regions/       # Geographic regions (optional hierarchy)
+├── 03_Organizations/      # Factions, guilds, governments, armies, treaties
+├── 04_Cultures_and_Races/ # Races, societies, customs, languages
 ├── 05_Systems/
 │   ├── Magic/             # Magic systems, schools, rules
 │   ├── Technology/        # Tech levels, inventions
-│   ├── Economy/           # Currency, trade, scarcity
-│   └── Religion/          # Deities, theology, temples
+│   ├── Economy/           # Currency, trade, trade routes
+│   ├── Religion/          # Deities, theology, temples
+│   └── Medicine/          # Diseases, plagues
 ├── 06_History_and_Timeline/ # Events, eras, calendars
 ├── 07_Quests_and_Adventures/ # Quests, hooks, encounters
 ├── 08_Items_and_Equipment/   # Magic items, artifacts, gear
@@ -274,6 +268,17 @@ World Name/
 ├── 11_Manuscript/         # Chapters, scenes (novel mode)
 ├── _Templates/            # All entity templates
 └── _Resources/            # Images, maps, reference docs
+```
+
+### Canon Status (Novel Mode)
+
+For novelists, add frontmatter to track publication state:
+
+```yaml
+---
+canon_status: draft       # draft, beta, published, retcon
+canon_books: [1, 2]      # Which books this appears in
+---
 ```
 
 ## D&D Mechanical Support
@@ -313,12 +318,12 @@ Load these only when needed:
 |------|-------------|
 | [references/entity-templates.md](references/entity-templates.md) | Creating any entity type |
 | [references/diagnostics.md](references/diagnostics.md) | Running world diagnostics |
-| [references/dnd-systems.md](references/dnd-systems.md) | D&D stat blocks, spells, items |
+| [references/dnd-systems.md](references/dnd-systems.md) | D&D/PF2e stat blocks, spells, items |
 | [references/dataview-queries.md](references/dataview-queries.md) | Building dashboards |
 | [references/calendar-systems.md](references/calendar-systems.md) | Custom calendar setup |
-| [references/faction-clocks.md](references/faction-clocks.md) | Faction progression system |
 | [references/continuity-enforcement.md](references/continuity-enforcement.md) | Novel continuity checking |
 | [references/humanizer-integration.md](references/humanizer-integration.md) | AI-tell removal patterns |
+| [references/troubleshooting.md](references/troubleshooting.md) | Common errors and fixes |
 
 ## Scripts
 
@@ -326,11 +331,15 @@ Load these only when needed:
 |--------|---------|
 | `scripts/init_vault.py` | Create full vault scaffold with plugin configs |
 | `scripts/create_entity.py` | Create entity from template with wikilinks |
+| `scripts/bulk_create.py` | Bulk create entities from CSV/JSON |
+| `scripts/advance_clocks.py` | Batch faction progress tracking |
+| `scripts/rollback.py` | Undo cascade changes |
 | `scripts/validate_world.py` | Scan vault for issues, run diagnostics |
 | `scripts/generate_dashboard.py` | Generate Dataview-powered dashboards |
 | `scripts/cascade_analysis.py` | Trace "what if?" consequences through vault |
 | `scripts/index_vault.py` | Index vault for semantic search (RAG) |
 | `scripts/vault_search.py` | Semantic search across vault content |
+| `scripts/export_vault.py` | Export vault to JSON/CSV |
 
 ## RAG (Semantic Search)
 

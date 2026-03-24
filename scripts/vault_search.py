@@ -84,10 +84,20 @@ def main():
         help="Filter by folder name (e.g., 01_Characters)",
     )
     parser.add_argument(
+        "--region",
+        help="Filter by region/subfolder (e.g., Northern_Kingdoms). Searches recursively in that folder.",
+    )
+    parser.add_argument(
         "--n",
         type=int,
         default=5,
         help="Number of results (default: 5)",
+    )
+    parser.add_argument(
+        "--offset",
+        type=int,
+        default=0,
+        help="Offset for pagination (default: 0)",
     )
     parser.add_argument(
         "--json",
@@ -130,6 +140,8 @@ def main():
                 n_results=args.n,
                 entity_type=args.entity_type,
                 folder=args.folder,
+                region=args.region,
+                offset=args.offset,
                 auto_update=not args.no_update,
             )
     except Exception as e:

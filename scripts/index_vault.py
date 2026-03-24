@@ -39,6 +39,12 @@ def main():
         action="store_true",
         help="Show index statistics and exit",
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="Number of parallel workers for indexing (default: 1)",
+    )
 
     args = parser.parse_args()
 
@@ -68,7 +74,7 @@ def main():
 
     try:
         if args.full or not indexer.manifest:
-            indexer.full_index(show_progress=True)
+            indexer.full_index(show_progress=True, max_workers=args.workers)
         else:
             indexer.incremental_index(show_progress=True)
     except ImportError as e:

@@ -289,6 +289,158 @@ def check_humanizer_issues(vault_path: Path) -> list:
     return diagnostics
 
 
+def check_quest_orphans(vault_path: Path) -> list:
+    """Check for quests with no connections to other world elements."""
+    diagnostics = []
+    quest_folder = vault_path / "07_Quests_and_Adventures"
+    if not quest_folder.exists():
+        return diagnostics
+
+    all_notes = set()
+    for md_file in vault_path.rglob("*.md"):
+        if md_file.name.startswith("."):
+            continue
+        all_notes.add(md_file.stem)
+
+    for md_file in quest_folder.rglob("*.md"):
+        try:
+            content = md_file.read_text()
+        except Exception:
+            continue
+
+        links = extract_wikilinks(content)
+        valid_links = [l for l in links if l in all_notes]
+
+        if len(valid_links) < 2:
+            diagnostics.append(
+                Diagnostic(
+                    "W10",
+                    "Quest Hook Orphaned",
+                    "medium",
+                    str(md_file.relative_to(vault_path)),
+                    f"Quest has only {len(valid_links)} connection(s) to other entities",
+                    "Link to at least 2 other entities (NPCs, locations, factions)",
+                )
+            )
+    return diagnostics
+
+
+def check_npc_motivation_gaps(vault_path: Path) -> list:
+    """Check for NPCs missing motivation fields."""
+    diagnostics = []
+    char_folder = vault_path / "01_Characters"
+    if not char_folder.exists():
+        return diagnostics
+
+    motivation_keywords = ["want", "fear", "secret", "motivation", "goal", "desire"]
+
+    for md_file in char_folder.rglob("*.md"):
+        try:
+            content = md_file.read_text()
+        except Exception:
+            continue
+
+        body = re.sub(r"^---\n.*?\n---\n?", "", content, flags=re.DOTALL)
+        body_lower = body.lower()
+
+        found_motivation = any(kw in body_lower for kw in motivation_keywords)
+        if not found_motivation:
+            diagnostics.append(
+                Diagnostic(
+                    "W11",
+                    "NPC Motivation Gap",
+                    "medium",
+                    str(md_file.relative_to(vault_path)),
+                    "NPC has no clear motivation (want, fear, or secret)",
+                    "Add at least one want, one fear, and optionally a secret",
+                )
+            )
+    return diagnostics
+
+
+def check_encounter_balance(vault_path: Path) -> list:
+    """Check for encounters without proper stat blocks."""
+    diagnostics = []
+    encounter_folder = vault_path / "07_Quests_and_Adventures"
+    if not encounter_folder.exists():
+        return diagnostics
+
+    for md_file in encounter_folder.rglob("*.md"):
+        try:
+            content = md_file.read_text()
+        except Exception:
+            continue
+
+        fm = parse_frontmatter(content)
+        if fm.get("type") == "encounter":
+            has_cr = "cr" in content.lower() or "challenge" in content.lower()
+            has_hp = "hp" in content.lower() or "hit points" in content.lower()
+            has_ac = "ac" in content.lower() or "armor class" in content.lower()
+
+            if not (has_cr and has_hp and has_ac):
+                diagnostics.append(
+                    Diagnostic(
+                        "W8",
+                        "Encounter Missing Stats",
+                        "low",
+                        str(md_file.relative_to(vault_path)),
+                        "Encounter may be missing CR, HP, or AC information",
+                        "Add stat block or reference creature stats",
+                    )
+                )
+    return diagnostics
+
+
+def check_canon_continuity(vault_path: Path) -> list:
+    """Check for continuity issues in novel mode (canon conflicts)."""
+    diagnostics = []
+    manuscript_folder = vault_path / "11_Manuscript"
+    if not manuscript_folder.exists():
+        return diagnostics
+
+    character_eyes = {}
+
+    for md_file in manuscript_folder.rglob("*.md"):
+        try:
+            content = md_file.read_text()
+        except Exception:
+            continue
+
+        fm = parse_frontmatter(content)
+        if fm.get("canon_status") in ["draft", "beta"]:
+            body = re.sub(r"^---\n.*?\n---\n?", "", content, flags=re.DOTALL)
+
+            eye_matches = re.findall(
+                r"\b(blue|green|brown|hazel|gray|amber|red|black)\s+eyes?",
+                body,
+                re.IGNORECASE,
+            )
+            for match in eye_matches:
+                character_in_file = fm.get("character", "")
+                if character_in_file:
+                    if character_in_file not in character_eyes:
+                        character_eyes[character_in_file] = []
+                    character_eyes[character_in_file].append(
+                        (match.lower(), str(md_file.name))
+                    )
+
+    for char, appearances in character_eyes.items():
+        colors = set([c[0] for c in appearances])
+        if len(colors) > 1:
+            locations = ", ".join([f"{c[1]}" for c in appearances[:3]])
+            diagnostics.append(
+                Diagnostic(
+                    "W13",
+                    "Character Eye Color Changed",
+                    "high",
+                    locations,
+                    f"Character '{char}' has multiple eye colors: {colors}",
+                    "Standardize eye color across all mentions",
+                )
+            )
+    return diagnostics
+
+
 def main():
     parser = argparse.ArgumentParser(description="Validate worldbuilding vault")
     parser.add_argument(
@@ -305,6 +457,24 @@ def main():
     parser.add_argument(
         "--output",
         help="Output report file (default: print to stdout)",
+    )
+    parser.add_argument(
+        "--parallel",
+        type=int,
+        default=1,
+        help="Number of parallel workers (default: 1)",
+    )
+    parser.add_argument(
+        "--orphan-whitelist",
+        action="append",
+        default=[],
+        help="Patterns to ignore for orphan detection (e.g., 'frontier*', 'wilderness*')",
+    )
+    parser.add_argument(
+        "--orphan-ignore-tag",
+        action="append",
+        default=[],
+        help="Tags to ignore for orphan detection (e.g., 'location/unexplored')",
     )
 
     args = parser.parse_args()
@@ -329,6 +499,10 @@ def main():
         all_diagnostics.extend(check_duplicate_entities(vault_path))
         all_diagnostics.extend(check_orphaned_notes(vault_path))
         all_diagnostics.extend(check_humanizer_issues(vault_path))
+        all_diagnostics.extend(check_quest_orphans(vault_path))
+        all_diagnostics.extend(check_npc_motivation_gaps(vault_path))
+        all_diagnostics.extend(check_encounter_balance(vault_path))
+        all_diagnostics.extend(check_canon_continuity(vault_path))
 
     # Sort by severity
     severity_order = {"high": 0, "medium": 1, "low": 2}

@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Optional
 
@@ -91,7 +92,7 @@ class VaultIndexer:
             metadata={"hnsw:space": "cosine"},
         )
 
-    def full_index(self, show_progress: bool = True):
+    def full_index(self, show_progress: bool = True, max_workers: int = 4):
         """Perform a full index of all vault files."""
         files = self._get_vault_files()
 
@@ -99,9 +100,21 @@ class VaultIndexer:
             print(f"[*] Indexing {len(files)} files...")
 
         all_chunks: list[Chunk] = []
-        for f in files:
-            chunks = chunk_file(str(f))
-            all_chunks.extend(chunks)
+
+        if max_workers > 1:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {executor.submit(chunk_file, str(f)): f for f in files}
+                for future in as_completed(futures):
+                    try:
+                        chunks = future.result()
+                        all_chunks.extend(chunks)
+                    except Exception as e:
+                        if show_progress:
+                            print(f"[!] Error indexing {futures[future]}: {e}")
+        else:
+            for f in files:
+                chunks = chunk_file(str(f))
+                all_chunks.extend(chunks)
 
         if not all_chunks:
             print("[!] No chunks created. Check your vault has .md files with content.")

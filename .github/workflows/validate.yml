@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -72,8 +75,8 @@ jobs:
         run: |
           TEMPLATE_COUNT=$(find skills/worldbuilding-obsidian/assets/templates -name "*.md" | wc -l)
           echo "Found $TEMPLATE_COUNT templates"
-          if [ "$TEMPLATE_COUNT" -lt 15 ]; then
-            echo "ERROR: Expected at least 15 templates, found $TEMPLATE_COUNT"
+          if [ "$TEMPLATE_COUNT" -lt 20 ]; then
+            echo "ERROR: Expected at least 20 templates, found $TEMPLATE_COUNT"
             exit 1
           fi
           echo "✓ Template validation passed"
@@ -93,9 +96,9 @@ jobs:
             "dnd-systems.md"
             "dataview-queries.md"
             "calendar-systems.md"
-            "faction-clocks.md"
             "continuity-enforcement.md"
             "humanizer-integration.md"
+            "troubleshooting.md"
           )
           for ref in "${REFS[@]}"; do
             if [ ! -f "skills/worldbuilding-obsidian/references/$ref" ]; then
