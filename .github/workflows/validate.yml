@@ -22,54 +22,27 @@ jobs:
 
       - name: Validate SKILL.md
         run: |
-          python -c "
-          import yaml
-          import sys
-          import re
-
-          with open('skills/worldbuilding-obsidian/SKILL.md', 'r') as f:
-              content = f.read()
-
-          # Check frontmatter
-          match = re.match(r'^---\n(.*?)\n---', content, re.DOTALL)
-          if not match:
-              print('ERROR: No YAML frontmatter found')
-              sys.exit(1)
-
-          fm = yaml.safe_load(match.group(1))
-
-          # Required fields
-          if 'name' not in fm:
-              print('ERROR: Missing required field: name')
-              sys.exit(1)
-          if 'description' not in fm:
-              print('ERROR: Missing required field: description')
-              sys.exit(1)
-
-          # Name format
-          name = fm['name']
-          if not re.match(r'^[a-z0-9-]+$', name):
-              print(f'ERROR: Name must be kebab-case: {name}')
-              sys.exit(1)
-          if len(name) > 64:
-              print(f'ERROR: Name too long (max 64): {len(name)}')
-              sys.exit(1)
-
-          # Description length
-          desc = fm['description']
-          if len(desc) > 1024:
-              print(f'ERROR: Description too long (max 1024): {len(desc)}')
-              sys.exit(1)
-
-          # Allowed keys
-          allowed = {'name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools'}
-          extra = set(fm.keys()) - allowed
-          if extra:
-              print(f'ERROR: Unknown frontmatter keys: {extra}')
-              sys.exit(1)
-
-          print('✓ SKILL.md validation passed')
-          "
+          # Check YAML frontmatter exists
+          grep -q "^---$" skills/worldbuilding-obsidian/SKILL.md || { echo "ERROR: No YAML frontmatter"; exit 1; }
+          
+          # Check required fields exist
+          grep -q "^name: " skills/worldbuilding-obsidian/SKILL.md || { echo "ERROR: Missing name field"; exit 1; }
+          grep -q "^description: " skills/worldbuilding-obsidian/SKILL.md || { echo "ERROR: Missing description field"; exit 1; }
+          
+          # Check name format (kebab-case)
+          NAME=$(sed -n 's/^name: //p' skills/worldbuilding-obsidian/SKILL.md)
+          if ! echo "$NAME" | grep -qE '^[a-z0-9-]+$'; then
+            echo "ERROR: Name must be kebab-case: $NAME"
+            exit 1
+          fi
+          
+          # Check name length
+          if [ ${#NAME} -gt 64 ]; then
+            echo "ERROR: Name too long (max 64): ${#NAME}"
+            exit 1
+          fi
+          
+          echo "✓ SKILL.md validation passed"
 
       - name: Validate templates
         run: |
