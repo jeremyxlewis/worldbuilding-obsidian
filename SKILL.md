@@ -2,7 +2,7 @@
 name: worldbuilding-obsidian
 description: "Generate and manage Obsidian vaults for worldbuilding. Supports D&D homebrew (stat blocks, factions, quests, encounters) and novelists (character arcs, continuity, series bibles). Creates full vault structures with Dataview dashboards, faction clocks, deep continuity enforcement, and humanized in-world writing. Use when building fictional worlds, creating campaign settings, writing novels, managing NPCs, designing magic systems, organizing worldbuilding notes in Obsidian, or asking about D&D/novel worldbuilding workflows."
 license: MIT
-compatibility: Requires Python 3.8+, Obsidian (free)
+compatibility: Requires Python 3.8+, Obsidian (free). RAG requires: pip install -r requirements.txt
 metadata:
   author: jeremyxlewis
   version: "1.0"
@@ -83,13 +83,19 @@ When: "Create an NPC," "add a location," "make a faction," "generate a quest"
 
 1. **Determine entity type** from user request. See [references/entity-templates.md](references/entity-templates.md) for all types.
 
-2. **Read existing vault.** Before generating:
+2. **Search for context (RAG).** Before generating, run semantic search:
+   ```bash
+   python scripts/vault_search.py --vault /path/to/vault --query "description of what you're creating"
+   ```
+   This finds relevant existing entities even without explicit wikilinks. Use results as generation context.
+
+3. **Read existing vault.** Before generating:
    - Scan target folder for existing entities (to match style, naming conventions)
    - Parse frontmatter of related entities (factions, locations, characters)
    - Build relationship graph from wikilinks
    - Read any referenced entities fully
 
-3. **Generate entity** using appropriate template:
+4. **Generate entity** using appropriate template:
    - Fill frontmatter with all relevant properties
    - Write content that respects established facts
    - Create wikilinks to all related entities
@@ -323,6 +329,41 @@ Load these only when needed:
 | `scripts/validate_world.py` | Scan vault for issues, run diagnostics |
 | `scripts/generate_dashboard.py` | Generate Dataview-powered dashboards |
 | `scripts/cascade_analysis.py` | Trace "what if?" consequences through vault |
+| `scripts/index_vault.py` | Index vault for semantic search (RAG) |
+| `scripts/vault_search.py` | Semantic search across vault content |
+
+## RAG (Semantic Search)
+
+Requires dependencies from `requirements.txt`:
+```bash
+pip install -r requirements.txt
+```
+
+### How It Works
+1. **Index:** `index_vault.py` chunks all .md files by headings, embeds them, stores in ChromaDB at `{vault}/.rag/`
+2. **Search:** `vault_search.py` finds semantically relevant content before generation
+3. **Auto-sync:** Index updates automatically when files change (hash-based detection)
+
+### Usage
+```bash
+# First-time setup: index the vault
+python scripts/index_vault.py --vault /path/to/vault
+
+# Search for related content
+python scripts/vault_search.py --vault /path/to/vault --query "necromancy rituals"
+
+# Filter by entity type
+python scripts/vault_search.py --vault /path/to/vault --query "thieves guild" --type faction
+
+# Find entities related to a specific entity
+python scripts/vault_search.py --vault /path/to/vault --related "Thoren Ironforge"
+
+# Check index stats
+python scripts/index_vault.py --vault /path/to/vault --stats
+```
+
+### Integration
+Workflow B (Create Entity) automatically runs RAG search before generation to find related context. This ensures new entities reference existing world elements even without explicit wikilinks.
 
 Base directory for this skill: `skills/worldbuilding-obsidian/`
 Relative paths are relative to this base directory.

@@ -1,0 +1,5 @@
+# RAG dependencies for worldbuilding-obsidian
+# Install with: pip install -r requirements.txt
+
+chromadb>=1.0.0
+sentence-transformers>=4.0.0
