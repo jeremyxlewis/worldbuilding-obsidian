@@ -23,14 +23,14 @@ jobs:
       - name: Validate SKILL.md
         run: |
           # Check YAML frontmatter exists
-          grep -q "^---$" skills/worldbuilding-obsidian/SKILL.md || { echo "ERROR: No YAML frontmatter"; exit 1; }
+          grep -q "^---$" SKILL.md || { echo "ERROR: No YAML frontmatter"; exit 1; }
           
           # Check required fields exist
-          grep -q "^name: " skills/worldbuilding-obsidian/SKILL.md || { echo "ERROR: Missing name field"; exit 1; }
-          grep -q "^description: " skills/worldbuilding-obsidian/SKILL.md || { echo "ERROR: Missing description field"; exit 1; }
+          grep -q "^name: " SKILL.md || { echo "ERROR: Missing name field"; exit 1; }
+          grep -q "^description: " SKILL.md || { echo "ERROR: Missing description field"; exit 1; }
           
           # Check name format (kebab-case)
-          NAME=$(sed -n 's/^name: //p' skills/worldbuilding-obsidian/SKILL.md)
+          NAME=$(sed -n 's/^name: //p' SKILL.md)
           if ! echo "$NAME" | grep -qE '^[a-z0-9-]+$'; then
             echo "ERROR: Name must be kebab-case: $NAME"
             exit 1
@@ -46,7 +46,7 @@ jobs:
 
       - name: Validate templates
         run: |
-          TEMPLATE_COUNT=$(find skills/worldbuilding-obsidian/assets/templates -name "*.md" | wc -l)
+          TEMPLATE_COUNT=$(find assets/templates -name "*.md" | wc -l)
           echo "Found $TEMPLATE_COUNT templates"
           if [ "$TEMPLATE_COUNT" -lt 20 ]; then
             echo "ERROR: Expected at least 20 templates, found $TEMPLATE_COUNT"
@@ -56,7 +56,7 @@ jobs:
 
       - name: Validate scripts
         run: |
-          for script in skills/worldbuilding-obsidian/scripts/*.py; do
+          for script in scripts/*.py; do
             python -m py_compile "$script" || exit 1
           done
           echo "✓ Script validation passed"
@@ -74,7 +74,7 @@ jobs:
             "troubleshooting.md"
           )
           for ref in "${REFS[@]}"; do
-            if [ ! -f "skills/worldbuilding-obsidian/references/$ref" ]; then
+            if [ ! -f "references/$ref" ]; then
               echo "ERROR: Missing reference: $ref"
               exit 1
             fi
