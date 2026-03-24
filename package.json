@@ -1,0 +1,27 @@
+{
+  "name": "worldbuilding-obsidian",
+  "version": "1.0.0",
+  "description": "Generate and manage Obsidian vaults for worldbuilding. Supports D&D homebrew and novelists with faction clocks, deep continuity enforcement, and humanized in-world writing.",
+  "keywords": [
+    "agent-skill",
+    "worldbuilding",
+    "obsidian",
+    "dnd",
+    "rpg",
+    "novel",
+    "fantasy",
+    "homebrew",
+    "campaign",
+    "ttrpg"
+  ],
+  "license": "MIT",
+  "author": "jeremyxlewis",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeremyxlewis/worldbuilding-obsidian"
+  },
+  "bugs": {
+    "url": "https://github.com/jeremyxlewis/worldbuilding-obsidian/issues"
+  },
+  "homepage": "https://github.com/jeremyxlewis/worldbuilding-obsidian#readme"
+}

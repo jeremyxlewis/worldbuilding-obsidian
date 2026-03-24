@@ -1,0 +1,106 @@
+name: Validate Skill
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate SKILL.md
+        run: |
+          python -c "
+          import yaml
+          import sys
+          import re
+
+          with open('skills/worldbuilding-obsidian/SKILL.md', 'r') as f:
+              content = f.read()
+
+          # Check frontmatter
+          match = re.match(r'^---\n(.*?)\n---', content, re.DOTALL)
+          if not match:
+              print('ERROR: No YAML frontmatter found')
+              sys.exit(1)
+
+          fm = yaml.safe_load(match.group(1))
+
+          # Required fields
+          if 'name' not in fm:
+              print('ERROR: Missing required field: name')
+              sys.exit(1)
+          if 'description' not in fm:
+              print('ERROR: Missing required field: description')
+              sys.exit(1)
+
+          # Name format
+          name = fm['name']
+          if not re.match(r'^[a-z0-9-]+$', name):
+              print(f'ERROR: Name must be kebab-case: {name}')
+              sys.exit(1)
+          if len(name) > 64:
+              print(f'ERROR: Name too long (max 64): {len(name)}')
+              sys.exit(1)
+
+          # Description length
+          desc = fm['description']
+          if len(desc) > 1024:
+              print(f'ERROR: Description too long (max 1024): {len(desc)}')
+              sys.exit(1)
+
+          # Allowed keys
+          allowed = {'name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools'}
+          extra = set(fm.keys()) - allowed
+          if extra:
+              print(f'ERROR: Unknown frontmatter keys: {extra}')
+              sys.exit(1)
+
+          print('✓ SKILL.md validation passed')
+          "
+
+      - name: Validate templates
+        run: |
+          TEMPLATE_COUNT=$(find skills/worldbuilding-obsidian/assets/templates -name "*.md" | wc -l)
+          echo "Found $TEMPLATE_COUNT templates"
+          if [ "$TEMPLATE_COUNT" -lt 15 ]; then
+            echo "ERROR: Expected at least 15 templates, found $TEMPLATE_COUNT"
+            exit 1
+          fi
+          echo "✓ Template validation passed"
+
+      - name: Validate scripts
+        run: |
+          for script in skills/worldbuilding-obsidian/scripts/*.py; do
+            python -m py_compile "$script" || exit 1
+          done
+          echo "✓ Script validation passed"
+
+      - name: Check references exist
+        run: |
+          REFS=(
+            "entity-templates.md"
+            "diagnostics.md"
+            "dnd-systems.md"
+            "dataview-queries.md"
+            "calendar-systems.md"
+            "faction-clocks.md"
+            "continuity-enforcement.md"
+            "humanizer-integration.md"
+          )
+          for ref in "${REFS[@]}"; do
+            if [ ! -f "skills/worldbuilding-obsidian/references/$ref" ]; then
+              echo "ERROR: Missing reference: $ref"
+              exit 1
+            fi
+          done
+          echo "✓ Reference validation passed"

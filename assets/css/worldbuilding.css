@@ -1,0 +1,136 @@
+/* Worldbuilding-Obsidian CSS */
+/* Custom styling for worldbuilding vaults */
+
+/* Dashboard cards */
+.dashboard-card {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 8px 0;
+  background: var(--background-secondary);
+}
+
+/* Entity type colors via frontmatter cssclasses */
+.cssclass-character .markdown-preview-view {
+  border-left: 3px solid #e74c3c;
+}
+
+.cssclass-location .markdown-preview-view {
+  border-left: 3px solid #3498db;
+}
+
+.cssclass-faction .markdown-preview-view {
+  border-left: 3px solid #9b59b6;
+}
+
+.cssclass-quest .markdown-preview-view {
+  border-left: 3px solid #f39c12;
+}
+
+.cssclass-creature .markdown-preview-view {
+  border-left: 3px solid #27ae60;
+}
+
+.cssclass-item .markdown-preview-view {
+  border-left: 3px solid #e67e22;
+}
+
+/* Statblock styling */
+.statblock-container {
+  background: #fdf6e3;
+  border: 2px solid #8b4513;
+  border-radius: 4px;
+  padding: 12px;
+  font-family: 'Book Antiqua', 'Palatino Linotype', serif;
+  margin: 16px 0;
+}
+
+/* Calendar event markers */
+.calendar-event {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.85em;
+}
+
+/* Faction clock visualization */
+.clock-segment {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--text-muted);
+  border-radius: 50%;
+  margin: 2px;
+}
+
+.clock-segment.filled {
+  background: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+}
+
+/* Status indicators */
+.status-active { color: #27ae60; }
+.status-completed { color: #95a5a6; }
+.status-failed { color: #e74c3c; }
+.status-draft { color: #f39c12; }
+
+/* Timeline styling */
+.timeline-event {
+  border-left: 3px solid var(--interactive-accent);
+  padding-left: 16px;
+  margin: 12px 0;
+  position: relative;
+}
+
+.timeline-event::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--interactive-accent);
+}
+
+/* Mermaid diagram styling */
+.mermaid {
+  background: var(--background-primary);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+/* Dataview table improvements */
+.dataview.table-view-table {
+  font-size: 0.9em;
+}
+
+.dataview.table-view-table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8em;
+  letter-spacing: 0.5px;
+}
+
+/* Callout type extensions */
+.callout[data-callout="statblock"] {
+  --callout-color: 139, 69, 19;
+  --callout-icon: shield;
+}
+
+.callout[data-callout="quest"] {
+  --callout-color: 243, 156, 18;
+  --callout-icon: scroll;
+}
+
+.callout[data-callout="faction"] {
+  --callout-color: 155, 89, 182;
+  --callout-icon: flag;
+}
+
+.callout[data-callout="clock"] {
+  --callout-color: 52, 152, 219;
+  --callout-icon: clock;
+}
