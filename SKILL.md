@@ -2,7 +2,7 @@
 name: worldbuilding-obsidian
 description: "Generate and manage Obsidian vaults for worldbuilding. Supports D&D homebrew (stat blocks, factions, quests, encounters) and novelists (character arcs, continuity, series bibles). Creates full vault structures with Dataview dashboards, faction clocks, deep continuity enforcement, and humanized in-world writing. Use when building fictional worlds, creating campaign settings, writing novels, managing NPCs, designing magic systems, organizing worldbuilding notes in Obsidian, or asking about D&D/novel worldbuilding workflows."
 license: MIT
-compatibility: Requires Python 3.8+, Obsidian (free). RAG requires: pip install -r requirements.txt
+compatibility: "Requires Python 3.8+, Obsidian (free). RAG requires: pip install -r requirements.txt"
 metadata:
   author: jeremyxlewis
   version: "1.0"
